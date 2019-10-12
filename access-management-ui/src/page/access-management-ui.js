@@ -6,14 +6,16 @@ export default class AccessMngUI extends React.Component {
     super();
     this.state = {};
   }
+
+  onAppcodeComplete = form => {
+    console.log("data is ", form);
+    this.setState({ ...form });
+  };
+
   render() {
     return (
       <div>
-        <AppcodeSubmodule />
-        <AppcodeSubmodule />
-        <AppcodeSubmodule />
-        <AppcodeSubmodule />
-        <AppcodeSubmodule />
+        <AppcodeSubmodule oncomplete={this.onAppcodeComplete} />
       </div>
     );
   }
