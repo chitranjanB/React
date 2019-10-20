@@ -52,7 +52,12 @@ export default class AccessMngUI extends React.Component {
         <AppcodeSubmodule oncomplete={this.onAppcodeComplete} />
         {this.state.selectedAppcode ? <InfoBanner /> : null}
         {this.state.tools.length !== 0 ? (
-          <OnboardedTools roles={this.state.roles} tools={this.state.tools} />
+          <OnboardedTools
+            appcode={this.state.selectedAppcode}
+            module={this.state.selectedModule}
+            roles={this.state.roles}
+            tools={this.state.tools}
+          />
         ) : null}
       </Card>
     );

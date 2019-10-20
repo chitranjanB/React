@@ -7,8 +7,7 @@ export default class OnboardedTools extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedAppcode: "",
-      selectedModule: "",
+      requestSummary: [],
       isAccessSummaryRequired: false
     };
   }
@@ -24,19 +23,9 @@ export default class OnboardedTools extends React.Component {
     "releaseWorkflow"
   ];
 
-  componentDidMount() {}
-
   notifyCompleted = form => {
-    form
-      ? this.props.oncomplete(form)
-      : this.props.oncomplete({
-          selectedAppcode: this.state.selectedAppcode,
-          selectedModule: this.getSelectedModuleValue(this.state.selectedModule)
-        });
+    form ? this.props.oncomplete(form) : this.props.oncomplete({});
   };
-
-  getSelectedModuleValue = selectedModule =>
-    selectedModule === "" || selectedModule === "NONE" ? null : selectedModule;
 
   oncompleteAccessRequest = form => {
     this.setState({ ...form });
@@ -74,13 +63,19 @@ export default class OnboardedTools extends React.Component {
             </Row>
             <Row>
               <AccessRequest
+                appcode={this.props.appcode}
+                module={this.props.module}
                 roles={this.props.roles}
                 oncomplete={this.oncompleteAccessRequest}
               />
             </Row>
             {this.state.isAccessSummaryRequired ? (
               <Row>
-                <AccessSummary />
+                <AccessSummary
+                  appcode={this.props.appcode}
+                  module={this.props.module}
+                  requestSummary={this.state.requestSummary}
+                />
               </Row>
             ) : null}
           </Card>

@@ -13,46 +13,129 @@ export default class AccessRequest extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rolesAssigned: [],
-      requestedRoles: [],
-      revokedRoles: [],
-      queriedRoles: []
+      requestSummary: [],
+      isAccessSummaryRequired: false
     };
+  }
+
+  componentDidMount() {
+    let requestSummary = this.createEntryForUnvisited();
+    this.setState({ requestSummary });
+    this.notifyCompleted({
+      requestSummary,
+      isAccessSummaryRequired: this.state.isAccessSummaryRequired
+    });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { appcode, module } = this.props;
+    if (prevProps.appcode !== appcode || prevProps.module !== module) {
+      if (!this.hasCurrentRequestSummaryData()) {
+        //This is first visit to this module
+        let requestSummary = this.createEntryForUnvisited();
+        this.setState({ requestSummary });
+        this.notifyCompleted({ requestSummary });
+      }
+    }
+  }
+
+  createEntryForUnvisited() {
+    let checkedItems = [...this.props.roles];
+    const requestedRoles = [];
+    const revokedRoles = [];
+    const queriedRoles = [];
+    let requestSummary = [...this.state.requestSummary];
+
+    let data = this.buildRequestSummaryData(
+      checkedItems,
+      requestedRoles,
+      revokedRoles,
+      queriedRoles
+    );
+    data.rolesAssigned = [...this.props.roles];
+
+    requestSummary.push(data);
+    return requestSummary;
   }
 
   notifyCompleted = form => {
     form
       ? this.props.oncomplete(form)
       : this.props.oncomplete({
-          isAccessSummaryRequired: true
+          isAccessSummaryRequired: this.state.isAccessSummaryRequired
         });
   };
 
-  updateRolesAssigned = (role, isChecked) => {
-    let rolesAssigned = [...this.state.rolesAssigned];
-    if (isChecked) {
-      rolesAssigned = new Set([role, ...rolesAssigned]);
-    } else {
-      rolesAssigned = rolesAssigned.filter(item => role !== item);
+  isChecked(role) {
+    if (this.hasCurrentRequestSummaryData()) {
+      let { checkedItems } = this.getCurrentRequestSummaryData();
+      return role && checkedItems && checkedItems.includes(role);
     }
-    this.setState({ rolesAssigned });
+    return false;
+  }
+
+  buildKey() {
+    return `${this.props.appcode}_${this.props.module}`;
+  }
+
+  hasCurrentRequestSummaryData() {
+    return (
+      this.state.requestSummary &&
+      this.state.requestSummary.some(e => e.key === this.buildKey())
+    );
+  }
+
+  getCurrentRequestSummaryData() {
+    let requestSummaryForAppcodeModule =
+      this.state.requestSummary &&
+      this.state.requestSummary.find(e => e.key === this.buildKey());
+
+    return { ...requestSummaryForAppcodeModule };
+  }
+
+  updateCheckedStatus = (role, isChecked) => {
+    if (!this.hasCurrentRequestSummaryData) {
+      //fallback, in exceptional cases
+      throw new Error("no request summary while updateCheckedStatus");
+    }
+    let { checkedItems } = this.getCurrentRequestSummaryData();
+    checkedItems = [...checkedItems];
+    let modifiedRoles = [];
+    if (isChecked) {
+      modifiedRoles = [...new Set([role, ...checkedItems])];
+    } else {
+      modifiedRoles = checkedItems.filter(e => e !== role);
+    }
+    checkedItems = [...modifiedRoles];
+    return checkedItems;
   };
 
   updateRequestedRoles = (role, isChecked) => {
-    let requestedRoles = [...this.state.requestedRoles];
+    if (!this.hasCurrentRequestSummaryData) {
+      //fallback, in exceptional cases
+      throw new Error("no request summary while updateRequestedRoles");
+    }
+    let requestSummary = this.getCurrentRequestSummaryData();
+    let { requestedRoles } = requestSummary;
+    let { rolesAssigned } = requestSummary;
     if (isChecked) {
-      //include role if checked
-      requestedRoles = [...new Set([...requestedRoles, role])];
+      //include role if checked and not already assigned
+      requestedRoles = rolesAssigned.includes(role)
+        ? [...new Set([...requestedRoles])]
+        : [...new Set([...requestedRoles, role])];
     } else {
       //remove role if unchecked
       requestedRoles = requestedRoles.filter(e => e !== role);
     }
-    this.setState({ requestedRoles });
+    return requestedRoles;
   };
 
   updateRevokedRoles = (role, isChecked) => {
     let rolesAssigned = [...this.props.roles];
-    let revokedRoles = [...this.state.revokedRoles];
+    if (!this.hasCurrentRequestSummaryData) {
+      throw new Error("no request summary while updateRevokedRoles");
+    }
+    let { revokedRoles } = this.getCurrentRequestSummaryData();
     if (isChecked) {
       //remove the role from revokedRoles
       revokedRoles = revokedRoles.filter(e => e !== role);
@@ -62,30 +145,72 @@ export default class AccessRequest extends React.Component {
         ? [...new Set([...revokedRoles, role])]
         : [...revokedRoles];
     }
-    this.setState({ revokedRoles });
+    return revokedRoles;
   };
 
   updateQueriedRoles = role => {
-    let queriedRoles = [...new Set([...this.state.queriedRoles, role])];
-    this.setState({ queriedRoles });
+    let { queriedRoles } = this.getCurrentRequestSummaryData();
+    queriedRoles = [...new Set([...queriedRoles, role])];
+    return queriedRoles;
   };
 
   onChange = e => {
     let currentRole = e.target.name;
     let isChecked = e.target.checked;
 
-    this.updateRolesAssigned(currentRole, isChecked);
-    this.updateRequestedRoles(currentRole, isChecked);
-    this.updateRevokedRoles(currentRole, isChecked);
-    this.updateQueriedRoles(currentRole);
+    let checkedItems = this.updateCheckedStatus(currentRole, isChecked);
+    let requestedRoles = this.updateRequestedRoles(currentRole, isChecked);
+    let revokedRoles = this.updateRevokedRoles(currentRole, isChecked);
+    let queriedRoles = this.updateQueriedRoles(currentRole);
+    let rolesAssigned = [...this.props.roles];
 
-    this.notifyCompleted();
+    let requestSummary = [...this.state.requestSummary];
+    //if request summary is having key, update
+    if (requestSummary.some(e => e.key === this.buildKey())) {
+      requestSummary = requestSummary.map(e => {
+        if (e.key === this.buildKey()) {
+          let data = this.buildRequestSummaryData(
+            checkedItems,
+            requestedRoles,
+            revokedRoles,
+            queriedRoles
+          );
+          data.rolesAssigned = rolesAssigned;
+          return data;
+        }
+        return e;
+      });
+    } else {
+      let data = this.buildRequestSummaryData(
+        checkedItems,
+        requestedRoles,
+        revokedRoles,
+        queriedRoles
+      );
+      data.rolesAssigned = rolesAssigned;
+      requestSummary.push(data);
+    }
+    //else request summary not having key, push
+    this.setState({ requestSummary, isAccessSummaryRequired: true });
+    this.notifyCompleted({ requestSummary, isAccessSummaryRequired: true });
   };
 
+  buildRequestSummaryData(
+    checkedItems,
+    requestedRoles,
+    revokedRoles,
+    queriedRoles
+  ) {
+    let data = {};
+    data.key = this.buildKey();
+    data.checkedItems = checkedItems;
+    data.requestedRoles = requestedRoles;
+    data.revokedRoles = revokedRoles;
+    data.queriedRoles = queriedRoles;
+    return data;
+  }
+
   render() {
-    let checkedRoles = [
-      ...new Set([...this.props.roles, ...this.state.requestedRoles])
-    ];
     return (
       <Row>
         <Col>
@@ -99,7 +224,7 @@ export default class AccessRequest extends React.Component {
                   name={role}
                   key={role}
                   onChange={this.onChange}
-                  checked={checkedRoles.includes(role)}
+                  checked={this.isChecked(role)}
                 >
                   {role}
                 </Checkbox>
