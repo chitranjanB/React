@@ -29,6 +29,7 @@ export default class OnboardedTools extends React.Component {
 
   oncompleteAccessRequest = form => {
     this.setState({ ...form });
+    this.props.oncomplete(form);
   };
 
   render() {

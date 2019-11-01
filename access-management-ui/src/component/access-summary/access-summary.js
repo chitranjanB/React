@@ -139,7 +139,12 @@ export default class AccessSummary extends React.Component {
                 <strong>Access Summary:</strong>
               </Row>
               <Card style={{ paddingBottom: 10 }}>
-                <Table dataSource={this.createDatasource()} columns={columns} />
+                <Table
+                  dataSource={this.createDatasource()}
+                  columns={columns}
+                  pagination={false}
+                  bordered={true}
+                />
               </Card>
             </Col>
           </Row>

@@ -4,6 +4,7 @@ import InfoBanner from "../component/information-banner/information-banner";
 import OnboardedTools from "../component/onboarded-tools/onboarded-tools";
 
 import { Card } from "antd";
+import ButtonContainer from "../component/button-container/button-container";
 
 export default class AccessMngUI extends React.Component {
   constructor() {
@@ -12,7 +13,8 @@ export default class AccessMngUI extends React.Component {
       selectedAppcode: "",
       selectedModule: "",
       tools: [],
-      roles: []
+      roles: [],
+      requestSummary: []
     };
   }
 
@@ -44,6 +46,10 @@ export default class AccessMngUI extends React.Component {
     this.setState({ ...form, tools, roles });
   };
 
+  onOnboardedToolsComplete = form => {
+    this.setState({ ...form });
+  };
+
   render() {
     return (
       <Card
@@ -57,7 +63,11 @@ export default class AccessMngUI extends React.Component {
             module={this.state.selectedModule}
             roles={this.state.roles}
             tools={this.state.tools}
+            oncomplete={this.onOnboardedToolsComplete}
           />
+        ) : null}
+        {this.state.tools.length !== 0 ? (
+          <ButtonContainer requestSummary={this.state.requestSummary} />
         ) : null}
       </Card>
     );

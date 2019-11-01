@@ -79,14 +79,14 @@ export default class AppcodeSubmodule extends React.Component {
     });
     return this.state.selectedModule ? (
       <QueueAnim delay={300} className="queue-simple">
-        <Row style={{ padding: 15, paddingLeft: 30 }}>
-          <Row style={{ padding: 10 }}>
+        <Row style={{}}>
+          <Row style={{ padding: 10, paddingLeft: 0 }}>
             <strong>Project Name:</strong> {appData.appcode}
           </Row>
-          <Row style={{ padding: 10 }}>
+          <Row style={{ padding: 10, paddingLeft: 0 }}>
             <strong>Primary Manager:</strong> {appData.primaryManager}
           </Row>
-          <Row style={{ padding: 10 }}>
+          <Row style={{ padding: 10, paddingLeft: 0 }}>
             <strong>Secondary Manager:</strong> {appData.secondaryManager}
           </Row>
         </Row>
@@ -97,8 +97,7 @@ export default class AppcodeSubmodule extends React.Component {
   render() {
     return (
       <Row>
-        <h1>Step 1 : Choose your Appcode & module</h1>
-        <Col xs={10}>
+        <Col xs={24} sm={12} lg={12}>
           <Row style={{ paddingBottom: 5 }}>
             <strong>Appcode:</strong>
           </Row>
@@ -148,7 +147,9 @@ export default class AppcodeSubmodule extends React.Component {
             </Select>
           </Row>
         </Col>
-        <Col xs={14}>{this.renderProjectDetails()}</Col>
+        <Col xs={{ span: 24, offset: 0 }} lg={{ span: 8, offset: 2 }}>
+          {this.renderProjectDetails()}
+        </Col>
       </Row>
     );
   }
