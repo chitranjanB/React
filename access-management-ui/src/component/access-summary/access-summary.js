@@ -1,5 +1,13 @@
 import React from "react";
 import { Row, Col, Card, Table } from "antd";
+import styled from "styled-components";
+
+const StyledTable = styled(Table)`
+  .ant-table-thead > tr > th {
+    background: #000000d4;
+    color: white;
+  }
+`;
 
 const columns = [
   {
@@ -139,7 +147,7 @@ export default class AccessSummary extends React.Component {
                 <strong>Access Summary:</strong>
               </Row>
               <Card style={{ paddingBottom: 10 }}>
-                <Table
+                <StyledTable
                   dataSource={this.createDatasource()}
                   columns={columns}
                   pagination={false}

@@ -62,23 +62,25 @@ export default class OnboardedTools extends React.Component {
                   );
                 })}
             </Row>
-            <Row>
-              <AccessRequest
-                appcode={this.props.appcode}
-                module={this.props.module}
-                roles={this.props.roles}
-                oncomplete={this.oncompleteAccessRequest}
-              />
-            </Row>
-            {this.state.isAccessSummaryRequired ? (
+            <Col xs={20}>
               <Row>
-                <AccessSummary
+                <AccessRequest
                   appcode={this.props.appcode}
                   module={this.props.module}
-                  requestSummary={this.state.requestSummary}
+                  roles={this.props.roles}
+                  oncomplete={this.oncompleteAccessRequest}
                 />
               </Row>
-            ) : null}
+              {this.state.isAccessSummaryRequired ? (
+                <Row>
+                  <AccessSummary
+                    appcode={this.props.appcode}
+                    module={this.props.module}
+                    requestSummary={this.state.requestSummary}
+                  />
+                </Row>
+              ) : null}
+            </Col>
           </Card>
         </Col>
       </Row>
